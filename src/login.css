@@ -1,0 +1,1109 @@
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+.login-page,
+.login-page * {
+  box-sizing: border-box;
+}
+
+.login-page {
+  --login-white: #f6f7ff;
+  --login-muted: #a0a4bd;
+  --login-cyan: #42d9fa;
+  --login-purple: #ac70fa;
+
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  padding: 44px 20px;
+  background:
+    radial-gradient(ellipse at 16% 55%, #081c62 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 48%, #351258 0%, transparent 45%),
+    linear-gradient(135deg, #030612 0%, #080819 50%, #10071c 100%);
+  color: var(--login-white);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.login-page button,
+.login-page input {
+  font: inherit;
+}
+
+.login-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image:
+    linear-gradient(#ffffff04 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff04 1px, transparent 1px);
+  background-size: 65px 65px;
+  mask-image: radial-gradient(ellipse at center, black, transparent 85%);
+  pointer-events: none;
+}
+
+.login-glow {
+  position: absolute;
+  z-index: -1;
+  width: 550px;
+  height: 550px;
+  border-radius: 50%;
+  filter: blur(105px);
+  opacity: .36;
+  pointer-events: none;
+}
+
+.login-glow-blue {
+  left: -250px;
+  top: 18%;
+  background: #075aff;
+}
+
+.login-glow-purple {
+  right: -230px;
+  bottom: 4%;
+  background: #8c36e9;
+}
+
+/* Floating iridescent crystal decorations */
+
+.login-crystal {
+  position: absolute;
+  z-index: -1;
+  width: 115px;
+  height: 150px;
+  background:
+    linear-gradient(135deg, #ffffffc7 0%, transparent 17%),
+    conic-gradient(
+      from 45deg,
+      #6af5ff,
+      #aa78ff,
+      #f9adcf,
+      #152f70,
+      #e6e4ff,
+      #ffb4c5,
+      #6af5ff
+    );
+  clip-path: polygon(
+    34% 0%,
+    85% 9%,
+    100% 68%,
+    62% 100%,
+    5% 82%,
+    0% 31%
+  );
+  box-shadow: 0 0 40px #8462ff80;
+  opacity: .83;
+  animation: crystalFloat 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.login-crystal::after {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  background:
+    linear-gradient(140deg, #ffffffa6, transparent 30%),
+    linear-gradient(45deg, #080e37, #431f63, #0c2758);
+  clip-path: polygon(
+    40% 0,
+    92% 19%,
+    85% 74%,
+    48% 100%,
+    0 65%,
+    8% 24%
+  );
+  opacity: .78;
+}
+
+.crystal-one {
+  top: 12%;
+  left: 11%;
+  transform: rotate(-24deg);
+}
+
+.crystal-two {
+  top: 14%;
+  right: 12%;
+  width: 135px;
+  height: 195px;
+  animation-delay: -2s;
+}
+
+.crystal-three {
+  bottom: 5%;
+  left: 12%;
+  width: 175px;
+  height: 205px;
+  animation-delay: -4s;
+}
+
+.crystal-four {
+  bottom: 14%;
+  right: 10%;
+  width: 85px;
+  height: 135px;
+  animation-delay: -1s;
+}
+
+.crystal-five {
+  top: 45%;
+  right: 4%;
+  width: 60px;
+  height: 85px;
+  animation-delay: -3s;
+}
+
+@keyframes crystalFloat {
+  0%, 100% {
+    translate: 0 0;
+    rotate: -5deg;
+  }
+  50% {
+    translate: 0 -20px;
+    rotate: 5deg;
+  }
+}
+
+/* Main layout */
+
+.login-main {
+  position: relative;
+  width: min(100%, 490px);
+  margin: 0 auto;
+}
+
+.login-brand {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 27px;
+}
+
+.login-brand-icon {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eaff5f, #a5f16b);
+  color: #111625;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+  box-shadow: 0 0 25px #cfff5940;
+}
+
+.login-brand-icon span {
+  color: #166e55;
+}
+
+.login-brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.login-brand-copy strong {
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -1.2px;
+}
+
+.login-brand-copy small {
+  color: #a9b2c8;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+}
+
+/* Glass card */
+
+.login-card {
+  position: relative;
+  overflow: hidden;
+  padding: 42px 43px 31px;
+  border: 1px solid #ffffff30;
+  border-radius: 30px;
+  background:
+    linear-gradient(
+      135deg,
+      #141627b8,
+      #0a0b1cbd 45%,
+      #22132fa8
+    );
+  box-shadow:
+    0 24px 90px #00000080,
+    0 0 45px #4e42bb18,
+    inset 0 1px #ffffff22;
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    #70e6ff70,
+    transparent 32%,
+    transparent 60%,
+    #a75aff80
+  );
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.login-card-topline {
+  position: absolute;
+  top: 0;
+  left: 25%;
+  width: 50%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #8beaff,
+    transparent
+  );
+  box-shadow: 0 0 20px #5fe4ff;
+}
+
+.login-card-header {
+  text-align: center;
+}
+
+.login-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-bottom: 20px;
+  padding: 9px 14px;
+  border: 1px solid #9dffb32e;
+  border-radius: 50px;
+  background: #a4ffa20a;
+  color: #c9ff82;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+}
+
+.login-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #cfff76;
+  box-shadow: 0 0 12px #cfff76;
+}
+
+.login-card-header h1 {
+  margin: 0 0 9px;
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(27px, 4vw, 34px);
+  font-weight: 700;
+  letter-spacing: -1.6px;
+}
+
+.login-card-header h1 span {
+  color: #d7ff75;
+}
+
+.login-card-header p {
+  margin: 0;
+  color: var(--login-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 29px 0 25px;
+}
+
+.login-divider span {
+  flex: 1;
+  height: 1px;
+  background: #ffffff21;
+}
+
+.login-divider small {
+  color: #8f92a9;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+}
+
+/* Form */
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 21px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.login-field label {
+  color: #c8cbe0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.login-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 55px;
+  padding: 0 16px;
+  border: 1px solid #ffffff29;
+  border-radius: 13px;
+  background: #090d1d85;
+  transition: .2s ease;
+}
+
+.login-input-wrap:focus-within {
+  border-color: #57d8ff;
+  box-shadow: 0 0 0 3px #43ceff12, 0 0 20px #43ceff16;
+}
+
+.login-input-icon {
+  flex-shrink: 0;
+  color: #a4b0d1;
+  font-size: 19px;
+}
+
+.login-input-wrap input {
+  width: 100%;
+  min-width: 0;
+  height: 52px;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #fff;
+  font-size: 13px;
+}
+
+.login-input-wrap input::placeholder {
+  color: #737891;
+}
+
+.login-input-wrap input:-webkit-autofill {
+  -webkit-text-fill-color: #fff;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.login-show-password {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: #77dfff;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.login-show-password:hover {
+  color: #fff;
+}
+
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid #fb747c60;
+  border-radius: 11px;
+  background: #e43d5218;
+  color: #ffadb5;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.login-error span {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #ffadb5;
+  border-radius: 50%;
+  font-weight: 800;
+}
+
+.login-submit {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-height: 58px;
+  margin-top: 5px;
+  padding: 0 22px;
+  border: 1px solid #9cecff8c;
+  border-radius: 14px;
+  background: linear-gradient(
+    105deg,
+    #0e9fbd,
+    #366eb3 50%,
+    #9b4fdb
+  );
+  box-shadow:
+    0 8px 35px #338fe02e,
+    inset 0 1px #ffffff55;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.login-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 38px #4f9eff55;
+}
+
+.login-submit:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.login-arrow {
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.login-security-note {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 26px;
+}
+
+.login-security-note span {
+  color: #b9ff86;
+  font-size: 17px;
+}
+
+.login-security-note p {
+  margin: 0;
+  color: #9398ae;
+  font-size: 11px;
+  text-align: center;
+}
+
+.login-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 25px;
+  color: #8b90a9;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+}
+
+/* Responsive */
+
+@media (max-width: 650px) {
+  .login-page {
+    padding: 24px 15px;
+  }
+
+  .login-main {
+    width: min(100%, 440px);
+  }
+
+  .login-card {
+    padding: 32px 23px 27px;
+    border-radius: 24px;
+  }
+
+  .login-brand {
+    margin-bottom: 20px;
+  }
+
+  .login-card-header h1 {
+    font-size: 29px;
+  }
+
+  .login-crystal {
+    opacity: .25;
+  }
+
+  .crystal-one,
+  .crystal-two,
+  .crystal-four,
+  .crystal-five {
+    display: none;
+  }
+
+  .crystal-three {
+    left: -85px;
+    bottom: 0;
+  }
+
+  .login-bottom {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-crystal {
+    animation: none;
+  }
+
+  .login-submit {
+    transition: none;
+  }
+}
+
+.login-page {
+  background-image: url('/messmate-glass-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Hide old decorative crystals */
+.login-crystal,
+.login-crystals,
+.crystal,
+.crystal-1,
+.crystal-2,
+.crystal-3,
+.crystal-4,
+.crystal-5,
+.crystal-6 {
+  display: none !important;
+}
+
+/* Keep only the new realistic crystal background */
+.login-page {
+  background-image: url('/messmate-glass-bg.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+
+/* IIIT Bhubaneswar Official Logo */
+
+.login-brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.iiit-login-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+
+/* Gentle background breathing effect */
+.login-page {
+  background-size: 102% 102% !important;
+  animation: messmateBackgroundFloat 12s ease-in-out infinite alternate;
+}
+
+@keyframes messmateBackgroundFloat {
+  0% {
+    background-position: 49.5% 49.5%;
+  }
+
+  50% {
+    background-position: 50.5% 50%;
+  }
+
+  100% {
+    background-position: 50% 50.5%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page {
+    animation: none !important;
+  }
+}
+
+/* ==========================================
+   MESSMATE — ANIMATED NEON ATMOSPHERE
+   ========================================== */
+
+/* Keep the background image and form stationary */
+.login-page {
+  background-image: url('/messmate-glass-bg.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  animation: none !important;
+}
+
+/* Soft flowing neon energy */
+.login-energy {
+  position: absolute;
+  z-index: 0;
+  width: 38vw;
+  height: 38vw;
+  max-width: 580px;
+  max-height: 580px;
+  border-radius: 50%;
+  filter: blur(85px);
+  opacity: 0.15;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.login-energy-blue {
+  top: -20%;
+  left: -16%;
+  background: radial-gradient(circle, #00d9ff 0%, transparent 65%);
+  animation: energyFloatBlue 9s ease-in-out infinite alternate;
+}
+
+.login-energy-purple {
+  bottom: -25%;
+  right: -15%;
+  background: radial-gradient(circle, #b94cff 0%, transparent 65%);
+  animation: energyFloatPurple 11s ease-in-out infinite alternate;
+}
+
+@keyframes energyFloatBlue {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.12;
+  }
+  100% {
+    transform: translate3d(18px, 12px, 0);
+    opacity: 0.24;
+  }
+}
+
+@keyframes energyFloatPurple {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.13;
+  }
+  100% {
+    transform: translate3d(-15px, -12px, 0);
+    opacity: 0.25;
+  }
+}
+
+/* Subtle moving light particles */
+.login-sparkles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.45;
+
+  background-image:
+    radial-gradient(circle, #72f5ff 1px, transparent 2px),
+    radial-gradient(circle, #d98aff 1px, transparent 2px);
+
+  background-size: 240px 230px, 310px 290px;
+  background-position: 20px 30px, 110px 90px;
+
+  animation: sparkleDrift 12s ease-in-out infinite alternate;
+}
+
+@keyframes sparkleDrift {
+  0% {
+    transform: translateY(0);
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateY(-8px);
+    opacity: 0.55;
+  }
+}
+
+/* Keep the actual login UI above the decorations */
+.login-main {
+  position: relative;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-energy,
+  .login-sparkles {
+    animation: none !important;
+  }
+}
+
+
+/* Mess background for login page */
+
+.login-page {
+  background-image:
+    linear-gradient(
+      135deg,
+      rgba(3, 14, 10, 0.35),
+      rgba(3, 15, 12, 0.50)
+    ),
+    url("/mess-background.png") !important;
+
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  animation: none !important;
+}
+
+/* Hide old crystal decorations */
+.login-page .login-crystal {
+  display: none !important;
+}
+
+/* Keep login form and college logo visible */
+.login-page .login-main {
+  position: relative;
+  z-index: 5;
+}
+
+
+/* MESSMATE - FINAL DINING HALL LOGIN BACKGROUND */
+
+.login-page {
+  background-image: url("/mess-background.png") !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+  animation: none !important;
+}
+
+/* Remove old crystal and neon decorations */
+.login-page .login-crystal,
+.login-page .login-glow,
+.login-page .login-energy,
+.login-page .login-sparkles,
+.login-page .login-grid {
+  display: none !important;
+}
+
+/* Keep the real login UI above the image */
+.login-page .login-main {
+  position: relative;
+  z-index: 2;
+}
+
+/* Premium glassmorphism card */
+.login-page .login-card {
+  background: linear-gradient(
+    145deg,
+    rgba(15, 28, 27, 0.88),
+    rgba(9, 21, 23, 0.90)
+  ) !important;
+
+  border: 1px solid rgba(188, 231, 220, 0.35) !important;
+
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.35),
+    0 0 35px rgba(77, 185, 152, 0.08) !important;
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.login-page .login-card h1 {
+  color: #ffffff;
+}
+
+.login-page .login-card p {
+  color: #c0d0cd;
+}
+
+
+/* FINAL LOGIN BACKGROUND FIX */
+
+.login-page {
+  background: url("/mess-background.png") center center / cover no-repeat !important;
+  background-color: #101b17 !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Remove old green, blue and purple overlays */
+.login-page::before,
+.login-page::after,
+.login-page .login-grid,
+.login-page .login-glow,
+.login-page .login-crystal {
+  display: none !important;
+}
+
+/* Keep the actual login interface sharp */
+.login-page .login-main {
+  position: relative !important;
+  z-index: 10 !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Premium dark glass login card */
+.login-page .login-card {
+  background: rgba(12, 25, 25, 0.88) !important;
+  border: 1px solid rgba(160, 225, 210, 0.45) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 20px 65px rgba(0, 0, 0, 0.35) !important;
+}
+
+
+/* =========================================
+   MESSMATE - FINAL LOGIN PAGE DESIGN
+   ========================================= */
+
+/* Clean dining hall background */
+.login-page {
+  min-height: 100vh !important;
+  position: relative !important;
+
+  background-image: url("/mess-background.png") !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+
+  filter: none !important;
+  animation: none !important;
+  isolation: isolate;
+}
+
+/* Remove old dark/green overlays */
+.login-page::before,
+.login-page::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Remove old crystal and neon decorations */
+.login-page .login-grid,
+.login-page .login-glow,
+.login-page .login-crystal,
+.login-page .login-energy,
+.login-page .login-sparkles {
+  display: none !important;
+}
+
+/* Keep real login form and branding above background */
+.login-page .login-main {
+  position: relative !important;
+  z-index: 5 !important;
+  filter: none !important;
+}
+
+/* Premium dark glass login card */
+.login-page .login-card {
+  background: linear-gradient(
+    145deg,
+    rgba(16, 32, 31, 0.88),
+    rgba(12, 24, 25, 0.91)
+  ) !important;
+
+  border: 1px solid rgba(180, 230, 215, 0.45) !important;
+  border-radius: 30px !important;
+
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.40),
+    0 0 30px rgba(64, 180, 150, 0.08) !important;
+}
+
+/* Card text */
+.login-page .login-card h1 {
+  color: #ffffff !important;
+}
+
+.login-page .login-card p {
+  color: #c5d2cf !important;
+}
+
+/* Login inputs */
+.login-page .login-input-wrap {
+  background: rgba(7, 18, 22, 0.80) !important;
+  border: 1px solid rgba(180, 210, 210, 0.24) !important;
+}
+
+/* Official IIIT logo */
+.login-page .login-brand-icon {
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.login-page .iiit-login-logo {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .login-page {
+    background-position: center !important;
+  }
+
+  .login-page .login-card {
+    border-radius: 22px !important;
+  }
+}
+
+
+/* ========================================
+   MESSMATE - FINAL DINING HALL LOGIN
+   ======================================== */
+
+.login-page {
+  min-height: 100vh !important;
+  position: relative !important;
+
+  background-image: url("/mess-background.png") !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+
+  animation: none !important;
+  filter: none !important;
+  isolation: isolate;
+}
+
+/* Remove previous overlays */
+.login-page::before,
+.login-page::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Hide old crystal and neon effects */
+.login-page .login-grid,
+.login-page .login-glow,
+.login-page .login-crystal,
+.login-page .login-energy,
+.login-page .login-sparkles {
+  display: none !important;
+}
+
+/* Keep original React login form visible */
+.login-page .login-main {
+  position: relative !important;
+  z-index: 5 !important;
+}
+
+/* Premium dark glass card */
+.login-page .login-card {
+  background: linear-gradient(
+    145deg,
+    rgba(14, 30, 29, 0.88),
+    rgba(9, 22, 23, 0.91)
+  ) !important;
+
+  border: 1px solid rgba(175, 225, 215, 0.48) !important;
+  border-radius: 30px !important;
+
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.38),
+    0 0 25px rgba(80, 180, 155, 0.08) !important;
+}
+
+/* Input styling */
+.login-page .login-input-wrap {
+  background: rgba(8, 19, 23, 0.82) !important;
+  border: 1px solid rgba(190, 220, 215, 0.25) !important;
+}
+
+/* Text */
+.login-page .login-card h1 {
+  color: #ffffff !important;
+}
+
+.login-page .login-card p {
+  color: #c7d4d0 !important;
+}
+
+/* Official IIIT Bhubaneswar logo */
+.login-page .login-brand-icon {
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.login-page .iiit-login-logo {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .login-page {
+    background-position: center center !important;
+  }
+
+  .login-page .login-card {
+    border-radius: 22px !important;
+  }
+}
+
+
+/* Center the login footer */
+
+.login-bottom {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  gap: 12px;
+  margin-top: 20px !important;
+}
+
+/* Hide copyright, keep Made For text */
+.login-bottom span:first-child {
+  display: none !important;
+}
+
+.login-bottom span:last-child {
+  display: block !important;
+  text-align: center !important;
+}
+
