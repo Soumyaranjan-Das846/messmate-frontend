@@ -71,6 +71,20 @@ function dateText(value) {
     : date.toLocaleDateString('en-IN')
 }
 
+// Correctly resolve the backend API base URL.
+// Supports VITE_API_URL with or without /api.
+function getApiBaseUrl() {
+  const configured = (
+    import.meta.env.VITE_API_URL || ''
+  ).trim().replace(/\/+$/, '')
+
+  if (!configured) return '/api'
+
+  return /\/api$/i.test(configured)
+    ? configured
+    : `${configured}/api`
+}
+
 function StudentPortal({ currentUser, onLogout }) {
   const [page, setPage] = useState('Dashboard')
   const [dashboard, setDashboard] = useState(null)
@@ -165,7 +179,7 @@ function StudentPortal({ currentUser, onLogout }) {
     setLoading(false)
   }
 
-  // Load real admins from the backend.
+  // CONTACT ADMINS - FIXED API URL AND ERROR HANDLING
   async function loadAdmins() {
     setAdminsLoading(true)
     setAdminsError('')
@@ -177,30 +191,43 @@ function StudentPortal({ currentUser, onLogout }) {
         throw new Error('Please sign in first.')
       }
 
-      const baseUrl = (
-        import.meta.env.VITE_API_URL || '/api'
-      ).replace(/\/$/, '')
+      const baseUrl = getApiBaseUrl()
 
       const response = await fetch(
         `${baseUrl}/v1/student/admins`,
         {
+          method: 'GET',
           headers: {
             'x-auth-token': token,
+            Accept: 'application/json',
           },
         }
       )
 
-      const result = await response.json()
+      const contentType =
+        response.headers.get('content-type') || ''
 
-      if (!response.ok || !result.success) {
+      if (!contentType.includes('application/json')) {
         throw new Error(
-          result.message || 'Unable to load administrators.'
+          `Server returned a non-JSON response (HTTP ${response.status}). Check the backend API route.`
         )
       }
 
-      setAdmins(
-        Array.isArray(result.data) ? result.data : []
-      )
+      const result = await response.json()
+
+      if (!response.ok || result.success === false) {
+        throw new Error(
+          result.message || `Unable to load administrators (HTTP ${response.status}).`
+        )
+      }
+
+      const adminList = Array.isArray(result.data)
+        ? result.data
+        : Array.isArray(result)
+          ? result
+          : []
+
+      setAdmins(adminList)
     } catch (err) {
       setAdmins([])
       setAdminsError(
@@ -955,7 +982,7 @@ function StudentPortal({ currentUser, onLogout }) {
             </div>
           )}
 
-          {/* NEW: CONTACT ADMINS */}
+          {/* CONTACT ADMINS */}
           {page === 'Contact Admins' && (
             <div>
               <div
