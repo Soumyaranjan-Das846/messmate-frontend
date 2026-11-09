@@ -10,7 +10,11 @@ async function apiFetch(endpoint, options = {}) {
   return fetch(`${API_BASE_URL}${path}`, options);
 }
 
-// Admin login
+// =====================================
+// AUTHENTICATION
+// =====================================
+
+// Login for both Admin and Student
 export async function loginAdmin(email, password) {
   const response = await apiFetch('/auth/login', {
     method: 'POST',
@@ -31,7 +35,95 @@ export async function loginAdmin(email, password) {
   return result.data;
 }
 
-// Get all registered students
+// NEW: Student and Admin registration
+export async function registerUser(userData) {
+  const response = await apiFetch('/auth/signup', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username: userData.username?.trim(),
+      email: userData.email?.trim().toLowerCase(),
+      password: userData.password,
+      phone: userData.phone?.trim(),
+      rollNumber: userData.rollNumber?.trim() || '',
+      department: userData.department?.trim() || '',
+      hostel: userData.hostel?.trim() || '',
+      roomNumber: userData.roomNumber?.trim() || '',
+      address: userData.address?.trim() || '',
+      role: userData.role === 'admin' ? 'admin' : 'user',
+      ...(userData.role === 'admin'
+        ? { adminCode: userData.adminCode }
+        : {}),
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.message || 'Registration failed');
+  }
+
+  return result.data;
+}
+
+// Logout
+export function logoutAdmin() {
+  sessionStorage.removeItem('messmate_token');
+}
+
+export function logoutUser() {
+  sessionStorage.removeItem('messmate_token');
+}
+
+// Get currently logged-in user from JWT
+export function getLoggedInUser() {
+  const token = sessionStorage.getItem('messmate_token');
+
+  if (!token) return null;
+
+  try {
+    const payload = token.split('.')[1];
+
+    if (!payload) return null;
+
+    const normalized = payload
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    const decoded = JSON.parse(atob(normalized));
+
+    if (decoded.exp && decoded.exp * 1000 <= Date.now()) {
+      sessionStorage.removeItem('messmate_token');
+      return null;
+    }
+
+    return {
+      id: decoded.id,
+      username: decoded.username,
+      email: decoded.email,
+      role: decoded.role,
+      messId: decoded.messId,
+      messusername: decoded.messusername,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function getUserRole() {
+  return getLoggedInUser()?.role || null;
+}
+
+export function getAdminId() {
+  return getLoggedInUser()?.id || null;
+}
+
+// =====================================
+// STUDENT MANAGEMENT
+// =====================================
+
 export async function getStudents() {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -55,7 +147,6 @@ export async function getStudents() {
   return result.data.filter((user) => user.role === 'user');
 }
 
-// Add a new student to MongoDB
 export async function addStudent(studentData) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -81,7 +172,6 @@ export async function addStudent(studentData) {
   return result.data;
 }
 
-// Delete a student
 export async function deleteStudent(studentId) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -112,12 +202,6 @@ export async function deleteStudent(studentId) {
   return result.data;
 }
 
-// Logout
-export function logoutAdmin() {
-  sessionStorage.removeItem('messmate_token');
-}
-
-// Update student details
 export async function updateStudent(studentId, studentData) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -150,7 +234,15 @@ export async function updateStudent(studentId, studentData) {
   return result.data;
 }
 
-// Get weekly mess menu
+export async function getStudentCount() {
+  const students = await getStudents();
+  return students.length;
+}
+
+// =====================================
+// MESS MENU
+// =====================================
+
 export async function getWeeklyMenu() {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -174,7 +266,6 @@ export async function getWeeklyMenu() {
   return result.data;
 }
 
-// Add daily menu
 export async function addMenu(menuData) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -200,7 +291,6 @@ export async function addMenu(menuData) {
   return result.data;
 }
 
-// Update existing daily menu
 export async function updateMenu(menuId, menuData) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -229,7 +319,6 @@ export async function updateMenu(menuId, menuData) {
   return result.data;
 }
 
-// Delete daily menu
 export async function deleteMenu(menuId) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -256,13 +345,10 @@ export async function deleteMenu(menuId) {
   return result.data;
 }
 
-// Get total registered students
-export async function getStudentCount() {
-  const students = await getStudents();
-  return students.length;
-}
+// =====================================
+// MEAL MANAGEMENT
+// =====================================
 
-// Get all meal records
 export async function getMeals() {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -281,7 +367,6 @@ export async function getMeals() {
   return result.data || [];
 }
 
-// Add a meal
 export async function addMeal(mealData) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -303,18 +388,20 @@ export async function addMeal(mealData) {
   return result.data;
 }
 
-// Update meal
 export async function updateMeal(mealId, mealData) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await apiFetch(`/v1/meal/updateMeal/${mealId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-auth-token': token,
-    },
-    body: JSON.stringify(mealData),
-  });
+  const response = await apiFetch(
+    `/v1/meal/updateMeal/${encodeURIComponent(mealId)}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+      body: JSON.stringify(mealData),
+    }
+  );
 
   const result = await response.json();
 
@@ -325,16 +412,18 @@ export async function updateMeal(mealId, mealData) {
   return result.data;
 }
 
-// Delete meal
 export async function deleteMeal(mealId) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await apiFetch(`/v1/meal/deleteMeal/${mealId}`, {
-    method: 'DELETE',
-    headers: {
-      'x-auth-token': token,
-    },
-  });
+  const response = await apiFetch(
+    `/v1/meal/deleteMeal/${encodeURIComponent(mealId)}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'x-auth-token': token,
+      },
+    }
+  );
 
   const result = await response.json();
 
@@ -345,7 +434,6 @@ export async function deleteMeal(mealId) {
   return result;
 }
 
-// Get monthly meal count
 export async function getMonthlyMealCount() {
   const meals = await getMeals();
 
@@ -355,7 +443,10 @@ export async function getMonthlyMealCount() {
   );
 }
 
-// Get expenses
+// =====================================
+// EXPENSE MANAGEMENT
+// =====================================
+
 export async function getExpenses() {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -379,7 +470,6 @@ export async function getExpenses() {
   };
 }
 
-// Get expense categories
 export async function getExpenseCategories() {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -398,7 +488,6 @@ export async function getExpenseCategories() {
   return Array.isArray(result.data) ? result.data : [];
 }
 
-// Add expense
 export async function addExpense(expenseData) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -420,12 +509,11 @@ export async function addExpense(expenseData) {
   return result.data;
 }
 
-// Update expense
 export async function updateExpense(expenseId, expenseData) {
   const token = sessionStorage.getItem('messmate_token');
 
   const response = await apiFetch(
-    `/v1/expense/updateExpense/${expenseId}`,
+    `/v1/expense/updateExpense/${encodeURIComponent(expenseId)}`,
     {
       method: 'PUT',
       headers: {
@@ -445,12 +533,11 @@ export async function updateExpense(expenseId, expenseData) {
   return result.data;
 }
 
-// Delete expense
 export async function deleteExpense(expenseId) {
   const token = sessionStorage.getItem('messmate_token');
 
   const response = await apiFetch(
-    `/v1/expense/deleteExpense/${expenseId}`,
+    `/v1/expense/deleteExpense/${encodeURIComponent(expenseId)}`,
     {
       method: 'DELETE',
       headers: {
@@ -468,27 +555,10 @@ export async function deleteExpense(expenseId) {
   return result;
 }
 
-// Get admin ID from JWT
-export function getAdminId() {
-  const token = sessionStorage.getItem('messmate_token');
+// =====================================
+// EXPENSE CATEGORIES
+// =====================================
 
-  if (!token) return null;
-
-  try {
-    const payload = token.split('.')[1];
-    const normalized = payload
-      .replace(/-/g, '+')
-      .replace(/_/g, '/');
-
-    const decoded = JSON.parse(atob(normalized));
-
-    return decoded.id || null;
-  } catch {
-    return null;
-  }
-}
-
-// Add expense category
 export async function addExpenseCategory(categoryData) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -510,12 +580,11 @@ export async function addExpenseCategory(categoryData) {
   return result.data;
 }
 
-// Update expense category
 export async function updateExpenseCategory(categoryId, categoryData) {
   const token = sessionStorage.getItem('messmate_token');
 
   const response = await apiFetch(
-    `/v1/category/updateCategory/${categoryId}`,
+    `/v1/category/updateCategory/${encodeURIComponent(categoryId)}`,
     {
       method: 'PUT',
       headers: {
@@ -535,12 +604,11 @@ export async function updateExpenseCategory(categoryId, categoryData) {
   return result.data;
 }
 
-// Delete expense category
 export async function deleteExpenseCategory(categoryId) {
   const token = sessionStorage.getItem('messmate_token');
 
   const response = await apiFetch(
-    `/v1/category/deleteCategory/${categoryId}`,
+    `/v1/category/deleteCategory/${encodeURIComponent(categoryId)}`,
     {
       method: 'DELETE',
       headers: {
@@ -558,7 +626,10 @@ export async function deleteExpenseCategory(categoryId) {
   return result;
 }
 
-// Get payments
+// =====================================
+// PAYMENT MANAGEMENT
+// =====================================
+
 export async function getPayments() {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -577,7 +648,6 @@ export async function getPayments() {
   return Array.isArray(result.data) ? result.data : [];
 }
 
-// Add payment
 export async function addPayment(paymentData) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -599,7 +669,6 @@ export async function addPayment(paymentData) {
   return result.data;
 }
 
-// Update payment
 export async function updatePayment(paymentId, paymentData) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -624,7 +693,6 @@ export async function updatePayment(paymentId, paymentData) {
   return result.data;
 }
 
-// Delete payment
 export async function deletePayment(paymentId) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -647,7 +715,6 @@ export async function deletePayment(paymentId) {
   return result;
 }
 
-// Get available balance
 export async function getAvailableBalance() {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -663,13 +730,18 @@ export async function getAvailableBalance() {
   const result = await response.json();
 
   if (!response.ok || !result.success) {
-    throw new Error(result.message || 'Failed to fetch available balance');
+    throw new Error(
+      result.message || 'Failed to fetch available balance'
+    );
   }
 
   return Number(result.data || 0);
 }
 
-// Feedback APIs
+// =====================================
+// FEEDBACK MANAGEMENT
+// =====================================
+
 const FEEDBACK_API = '/v1/feedback';
 
 async function feedbackRequest(path, options = {}) {
@@ -730,50 +802,10 @@ export async function deleteFeedback(feedbackId) {
   );
 }
 
-// Role-based authentication
-export function getLoggedInUser() {
-  const token = sessionStorage.getItem('messmate_token');
+// =====================================
+// STUDENT PORTAL
+// =====================================
 
-  if (!token) return null;
-
-  try {
-    const payload = token.split('.')[1];
-
-    if (!payload) return null;
-
-    const normalized = payload
-      .replace(/-/g, '+')
-      .replace(/_/g, '/');
-
-    const decoded = JSON.parse(atob(normalized));
-
-    if (decoded.exp && decoded.exp * 1000 <= Date.now()) {
-      sessionStorage.removeItem('messmate_token');
-      return null;
-    }
-
-    return {
-      id: decoded.id,
-      username: decoded.username,
-      email: decoded.email,
-      role: decoded.role,
-      messId: decoded.messId,
-      messusername: decoded.messusername,
-    };
-  } catch {
-    return null;
-  }
-}
-
-export function getUserRole() {
-  return getLoggedInUser()?.role || null;
-}
-
-export function logoutUser() {
-  sessionStorage.removeItem('messmate_token');
-}
-
-// Student portal APIs
 async function studentRequest(endpoint, options = {}) {
   const token = sessionStorage.getItem('messmate_token');
 

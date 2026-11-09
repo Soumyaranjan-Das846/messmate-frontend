@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import {
   getStudents,
-  addStudent,
   deleteStudent,
   updateStudent,
 } from './services/api'
@@ -11,7 +10,6 @@ import './Students.css'
 const initialForm = {
   username: '',
   email: '',
-  password: '',
   phone: '',
   rollNumber: '',
   department: '',
@@ -26,7 +24,6 @@ export default function Students() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  const [showForm, setShowForm] = useState(false)
   const [editingStudent, setEditingStudent] = useState(null)
   const [form, setForm] = useState(initialForm)
   const [saving, setSaving] = useState(false)
@@ -63,20 +60,11 @@ export default function Students() {
     }))
   }
 
-  function openAddForm() {
-    setEditingStudent(null)
-    setForm(initialForm)
-    setFormError('')
-    setSuccess('')
-    setShowForm(true)
-  }
-
   function openEditForm(student) {
     setEditingStudent(student)
     setForm({
       username: student.username || '',
       email: student.email || '',
-      password: '',
       phone: student.phone || '',
       rollNumber: student.rollNumber || '',
       department: student.department || '',
@@ -85,26 +73,20 @@ export default function Students() {
     })
     setFormError('')
     setSuccess('')
-    setShowForm(true)
   }
 
   function closeForm() {
     if (saving) return
-    setShowForm(false)
     setEditingStudent(null)
     setFormError('')
   }
 
   async function handleSubmit(event) {
     event.preventDefault()
+    if (!editingStudent) return
+
     setFormError('')
     setSuccess('')
-
-    if (!editingStudent && form.password.length < 6) {
-      setFormError('Password must contain at least 6 characters.')
-      return
-    }
-
     setSaving(true)
 
     try {
@@ -118,18 +100,9 @@ export default function Students() {
         roomNumber: form.roomNumber.trim(),
       }
 
-      if (editingStudent) {
-        await updateStudent(editingStudent._id, studentData)
-        setSuccess('Student details updated successfully!')
-      } else {
-        await addStudent({
-          ...studentData,
-          password: form.password,
-        })
-        setSuccess('Student registered successfully!')
-      }
+      await updateStudent(editingStudent._id, studentData)
+      setSuccess('Student details updated successfully!')
 
-      setShowForm(false)
       setEditingStudent(null)
       setForm(initialForm)
       await loadStudents()
@@ -212,14 +185,6 @@ export default function Students() {
             disabled={loading}
           >
             ↻ {loading ? 'Loading...' : 'Refresh Records'}
-          </button>
-
-          <button
-            type="button"
-            className="student-add-button"
-            onClick={openAddForm}
-          >
-            + Add Student
           </button>
         </div>
       </div>
@@ -354,8 +319,8 @@ export default function Students() {
         </div>
       </div>
 
-      {/* ADD / EDIT STUDENT MODAL */}
-      {showForm && (
+      {/* EDIT STUDENT MODAL */}
+      {editingStudent && (
         <div
           className="student-modal-overlay"
           onClick={closeForm}
@@ -369,19 +334,9 @@ export default function Students() {
           >
             <div className="student-modal-header">
               <div>
-                <span className="eyebrow">
-                  {editingStudent ? 'UPDATE RECORD' : 'NEW REGISTRATION'}
-                </span>
-
-                <h2 id="student-modal-title">
-                  {editingStudent ? 'Edit Student' : 'Add New Student'}
-                </h2>
-
-                <p>
-                  {editingStudent
-                    ? 'Update student information in your mess.'
-                    : 'Register a new member of your campus mess.'}
-                </p>
+                <span className="eyebrow">UPDATE RECORD</span>
+                <h2 id="student-modal-title">Edit Student</h2>
+                <p>Update student information in your mess.</p>
               </div>
 
               <button
@@ -419,22 +374,6 @@ export default function Students() {
                     required
                   />
                 </label>
-
-                {!editingStudent && (
-                  <label>
-                    Password *
-                    <input
-                      type="password"
-                      name="password"
-                      value={form.password}
-                      onChange={updateField}
-                      placeholder="Minimum 6 characters"
-                      minLength={6}
-                      autoComplete="new-password"
-                      required
-                    />
-                  </label>
-                )}
 
                 <label>
                   Phone Number *
@@ -514,11 +453,7 @@ export default function Students() {
                   className="student-submit-button"
                   disabled={saving}
                 >
-                  {saving
-                    ? 'Saving...'
-                    : editingStudent
-                      ? 'Save Changes'
-                      : '+ Register Student'}
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>

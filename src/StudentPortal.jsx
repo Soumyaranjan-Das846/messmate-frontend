@@ -11,13 +11,8 @@ import {
 } from './services/api'
 
 const DAYS = [
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday',
+  'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+  'Friday', 'Saturday', 'Sunday',
 ]
 
 const SECTIONS = [
@@ -26,6 +21,7 @@ const SECTIONS = [
   { name: 'My Meals', icon: '◷' },
   { name: 'My Payments', icon: '₹' },
   { name: 'Feedback', icon: '✉' },
+  { name: 'Contact Admins', icon: '☎' },
   { name: 'My Profile', icon: '♙' },
 ]
 
@@ -42,7 +38,7 @@ const button = {
   border: 'none',
   borderRadius: 10,
   background: '#195b46',
-  color: 'white',
+  color: '#fff',
   fontWeight: 700,
   cursor: 'pointer',
 }
@@ -58,15 +54,18 @@ const inputStyle = {
   color: '#193c2c',
 }
 
+const muted = {
+  color: '#819489',
+  fontSize: 13,
+}
+
 function money(value) {
   return `₹${Number(value || 0).toLocaleString('en-IN')}`
 }
 
 function dateText(value) {
   if (!value) return '—'
-
   const date = new Date(value)
-
   return Number.isNaN(date.getTime())
     ? '—'
     : date.toLocaleDateString('en-IN')
@@ -79,6 +78,10 @@ function StudentPortal({ currentUser, onLogout }) {
   const [payments, setPayments] = useState([])
   const [complaints, setComplaints] = useState([])
   const [weeklyMenu, setWeeklyMenu] = useState([])
+
+  const [admins, setAdmins] = useState([])
+  const [adminsLoading, setAdminsLoading] = useState(false)
+  const [adminsError, setAdminsError] = useState('')
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -119,29 +122,29 @@ function StudentPortal({ currentUser, onLogout }) {
 
     if (mealsResult.status === 'fulfilled') {
       setMeals(
-        Array.isArray(mealsResult.value) ? mealsResult.value : []
+        Array.isArray(mealsResult.value)
+          ? mealsResult.value : []
       )
     }
 
     if (paymentsResult.status === 'fulfilled') {
       setPayments(
         Array.isArray(paymentsResult.value)
-          ? paymentsResult.value
-          : []
+          ? paymentsResult.value : []
       )
     }
 
     if (complaintsResult.status === 'fulfilled') {
       setComplaints(
         Array.isArray(complaintsResult.value)
-          ? complaintsResult.value
-          : []
+          ? complaintsResult.value : []
       )
     }
 
     if (menuResult.status === 'fulfilled') {
       setWeeklyMenu(
-        Array.isArray(menuResult.value) ? menuResult.value : []
+        Array.isArray(menuResult.value)
+          ? menuResult.value : []
       )
     }
 
@@ -162,9 +165,61 @@ function StudentPortal({ currentUser, onLogout }) {
     setLoading(false)
   }
 
+  // Load real admins from the backend.
+  async function loadAdmins() {
+    setAdminsLoading(true)
+    setAdminsError('')
+
+    try {
+      const token = sessionStorage.getItem('messmate_token')
+
+      if (!token) {
+        throw new Error('Please sign in first.')
+      }
+
+      const baseUrl = (
+        import.meta.env.VITE_API_URL || '/api'
+      ).replace(/\/$/, '')
+
+      const response = await fetch(
+        `${baseUrl}/v1/student/admins`,
+        {
+          headers: {
+            'x-auth-token': token,
+          },
+        }
+      )
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || 'Unable to load administrators.'
+        )
+      }
+
+      setAdmins(
+        Array.isArray(result.data) ? result.data : []
+      )
+    } catch (err) {
+      setAdmins([])
+      setAdminsError(
+        err.message || 'Unable to load administrators.'
+      )
+    } finally {
+      setAdminsLoading(false)
+    }
+  }
+
   useEffect(() => {
     loadData()
   }, [])
+
+  useEffect(() => {
+    if (page === 'Contact Admins') {
+      loadAdmins()
+    }
+  }, [page])
 
   async function submitFeedback(event) {
     event.preventDefault()
@@ -178,10 +233,10 @@ function StudentPortal({ currentUser, onLogout }) {
         category: form.category,
         subject: form.subject.trim(),
         description: form.description.trim(),
-        rating: form.rating ? Number(form.rating) : null,
+        rating: form.rating
+          ? Number(form.rating)
+          : null,
       })
-
-      setNotice('Your submission has been sent successfully.')
 
       setForm({
         type: 'Complaint',
@@ -214,7 +269,8 @@ function StudentPortal({ currentUser, onLogout }) {
 
   const pendingComplaints = complaints.filter(
     (item) =>
-      item.type === 'Complaint' && item.status !== 'Resolved'
+      item.type === 'Complaint' &&
+      item.status !== 'Resolved'
   ).length
 
   const todayName = new Date().toLocaleDateString('en-IN', {
@@ -232,8 +288,19 @@ function StudentPortal({ currentUser, onLogout }) {
     letterSpacing: '-1px',
   }
 
-  const muted = {
-    color: '#819489',
+  const tableCell = {
+    padding: 15,
+    textAlign: 'left',
+    borderBottom: '1px solid #edf1ed',
+  }
+
+  const actionLink = {
+    ...button,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    textDecoration: 'none',
     fontSize: 13,
   }
 
@@ -244,22 +311,20 @@ function StudentPortal({ currentUser, onLogout }) {
           <div
             className="brand-mark"
             style={{
-              width: 54,
-              height: 54,
-              minWidth: 54,
-              padding: 4,
+              background: '#fff',
               borderRadius: 12,
-              background: '#ffffff',
+              padding: 4,
+              overflow: 'hidden',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              overflow: 'hidden',
               boxSizing: 'border-box',
+              flexShrink: 0,
             }}
           >
             <img
               src="/iiit-bhubaneswar-logo.png"
-              alt="IIIT Bhubaneswar Logo"
+              alt="IIIT Bhubaneswar logo"
               style={{
                 width: '100%',
                 height: '100%',
@@ -275,7 +340,9 @@ function StudentPortal({ currentUser, onLogout }) {
           </div>
         </div>
 
-        <div className="nav-caption">STUDENT WORKSPACE</div>
+        <div className="nav-caption">
+          STUDENT WORKSPACE
+        </div>
 
         <nav className="nav-menu">
           {SECTIONS.map((section) => (
@@ -284,7 +351,11 @@ function StudentPortal({ currentUser, onLogout }) {
               className={`nav-link ${
                 page === section.name ? 'active' : ''
               }`}
-              onClick={() => setPage(section.name)}
+              onClick={() => {
+                setPage(section.name)
+                setError('')
+                setNotice('')
+              }}
             >
               <span className="nav-symbol">
                 {section.icon}
@@ -308,9 +379,10 @@ function StudentPortal({ currentUser, onLogout }) {
 
           <div className="sidebar-user">
             <div className="avatar">ST</div>
-
             <div>
-              <strong>{student?.username || 'Student'}</strong>
+              <strong>
+                {student?.username || 'Student'}
+              </strong>
               <small>Student Account</small>
             </div>
           </div>
@@ -334,9 +406,15 @@ function StudentPortal({ currentUser, onLogout }) {
       <main className="main-content">
         <header className="topbar">
           <div className="topbar-left">
-            <span className="breadcrumb">Student Portal</span>
-            <span className="breadcrumb-separator">/</span>
-            <span className="breadcrumb-current">{page}</span>
+            <span className="breadcrumb">
+              Student Portal
+            </span>
+            <span className="breadcrumb-separator">
+              /
+            </span>
+            <span className="breadcrumb-current">
+              {page}
+            </span>
           </div>
 
           <div className="topbar-right">
@@ -370,7 +448,9 @@ function StudentPortal({ currentUser, onLogout }) {
                 STUDENT EXPERIENCE
               </span>
 
-              <h1 style={headingStyle}>{page} ✳</h1>
+              <h1 style={headingStyle}>
+                {page} ✳
+              </h1>
 
               <p style={{ color: '#9bb1a6', margin: 0 }}>
                 Welcome, {student?.username || 'Student'}.
@@ -378,8 +458,16 @@ function StudentPortal({ currentUser, onLogout }) {
             </div>
 
             <button
-              onClick={loadData}
-              disabled={loading}
+              onClick={
+                page === 'Contact Admins'
+                  ? loadAdmins
+                  : loadData
+              }
+              disabled={
+                page === 'Contact Admins'
+                  ? adminsLoading
+                  : loading
+              }
               style={button}
             >
               ↻ Refresh
@@ -414,12 +502,13 @@ function StudentPortal({ currentUser, onLogout }) {
             </div>
           )}
 
-          {loading && (
+          {loading && page !== 'Contact Admins' && (
             <p style={{ color: '#b3c7ba' }}>
               Loading your mess records...
             </p>
           )}
 
+          {/* DASHBOARD */}
           {page === 'Dashboard' && (
             <>
               <div
@@ -439,8 +528,8 @@ function StudentPortal({ currentUser, onLogout }) {
                 </h2>
 
                 <p style={muted}>
-                  Track your meals, payments and feedback in one
-                  place.
+                  Track your meals, payments and feedback
+                  in one place.
                 </p>
               </div>
 
@@ -479,9 +568,7 @@ function StudentPortal({ currentUser, onLogout }) {
                     <span style={{ fontSize: 24 }}>
                       {stat.icon}
                     </span>
-
                     <p style={muted}>{stat.label}</p>
-
                     <strong style={{ fontSize: 29 }}>
                       {stat.value}
                     </strong>
@@ -497,9 +584,7 @@ function StudentPortal({ currentUser, onLogout }) {
                     (meal) => (
                       <p key={meal}>
                         <strong
-                          style={{
-                            textTransform: 'capitalize',
-                          }}
+                          style={{ textTransform: 'capitalize' }}
                         >
                           {meal}:
                         </strong>{' '}
@@ -518,6 +603,7 @@ function StudentPortal({ currentUser, onLogout }) {
             </>
           )}
 
+          {/* MESS MENU */}
           {page === 'Mess Menu' && (
             <div
               style={{
@@ -561,8 +647,7 @@ function StudentPortal({ currentUser, onLogout }) {
 
                             <p style={muted}>
                               {Array.isArray(menu[meal])
-                                ? menu[meal].join(', ') ||
-                                  'Not added'
+                                ? menu[meal].join(', ') || 'Not added'
                                 : menu[meal] || 'Not added'}
                             </p>
                           </div>
@@ -585,10 +670,10 @@ function StudentPortal({ currentUser, onLogout }) {
             </div>
           )}
 
+          {/* MY MEALS */}
           {page === 'My Meals' && (
             <div style={card}>
               <h2>My Meal History</h2>
-
               <p style={muted}>
                 Total recorded meals: {totalMeals}
               </p>
@@ -605,34 +690,18 @@ function StudentPortal({ currentUser, onLogout }) {
                   >
                     <thead>
                       <tr>
-                        <th style={{ padding: 15, textAlign: 'left' }}>
-                          Date
-                        </th>
-
-                        <th style={{ padding: 15, textAlign: 'left' }}>
-                          Meals
-                        </th>
+                        <th style={tableCell}>Date</th>
+                        <th style={tableCell}>Meals</th>
                       </tr>
                     </thead>
 
                     <tbody>
                       {meals.map((meal) => (
                         <tr key={meal._id}>
-                          <td
-                            style={{
-                              padding: 15,
-                              borderTop: '1px solid #eee',
-                            }}
-                          >
+                          <td style={tableCell}>
                             {dateText(meal.date)}
                           </td>
-
-                          <td
-                            style={{
-                              padding: 15,
-                              borderTop: '1px solid #eee',
-                            }}
-                          >
+                          <td style={tableCell}>
                             {meal.numberOfMeal || 0}
                           </td>
                         </tr>
@@ -644,16 +713,18 @@ function StudentPortal({ currentUser, onLogout }) {
             </div>
           )}
 
+          {/* MY PAYMENTS */}
           {page === 'My Payments' && (
             <div style={card}>
               <h2>My Payment History</h2>
-
               <p style={muted}>
                 Total payments recorded: {money(totalPayments)}
               </p>
 
               {payments.length === 0 ? (
-                <p style={muted}>No payment records found.</p>
+                <p style={muted}>
+                  No payment records found.
+                </p>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
                   <table
@@ -664,34 +735,18 @@ function StudentPortal({ currentUser, onLogout }) {
                   >
                     <thead>
                       <tr>
-                        <th style={{ padding: 15, textAlign: 'left' }}>
-                          Date
-                        </th>
-
-                        <th style={{ padding: 15, textAlign: 'left' }}>
-                          Amount
-                        </th>
+                        <th style={tableCell}>Date</th>
+                        <th style={tableCell}>Amount</th>
                       </tr>
                     </thead>
 
                     <tbody>
                       {payments.map((payment) => (
                         <tr key={payment._id}>
-                          <td
-                            style={{
-                              padding: 15,
-                              borderTop: '1px solid #eee',
-                            }}
-                          >
+                          <td style={tableCell}>
                             {dateText(payment.date)}
                           </td>
-
-                          <td
-                            style={{
-                              padding: 15,
-                              borderTop: '1px solid #eee',
-                            }}
-                          >
+                          <td style={tableCell}>
                             <strong>
                               {money(payment.amount)}
                             </strong>
@@ -705,6 +760,7 @@ function StudentPortal({ currentUser, onLogout }) {
             </div>
           )}
 
+          {/* FEEDBACK */}
           {page === 'Feedback' && (
             <div
               style={{
@@ -731,10 +787,10 @@ function StudentPortal({ currentUser, onLogout }) {
                     <select
                       style={inputStyle}
                       value={form.type}
-                      onChange={(event) =>
+                      onChange={(e) =>
                         setForm({
                           ...form,
-                          type: event.target.value,
+                          type: e.target.value,
                         })
                       }
                     >
@@ -748,10 +804,10 @@ function StudentPortal({ currentUser, onLogout }) {
                     <select
                       style={inputStyle}
                       value={form.category}
-                      onChange={(event) =>
+                      onChange={(e) =>
                         setForm({
                           ...form,
-                          category: event.target.value,
+                          category: e.target.value,
                         })
                       }
                     >
@@ -775,10 +831,10 @@ function StudentPortal({ currentUser, onLogout }) {
                     <input
                       style={inputStyle}
                       value={form.subject}
-                      onChange={(event) =>
+                      onChange={(e) =>
                         setForm({
                           ...form,
-                          subject: event.target.value,
+                          subject: e.target.value,
                         })
                       }
                       required
@@ -796,10 +852,10 @@ function StudentPortal({ currentUser, onLogout }) {
                         resize: 'vertical',
                       }}
                       value={form.description}
-                      onChange={(event) =>
+                      onChange={(e) =>
                         setForm({
                           ...form,
-                          description: event.target.value,
+                          description: e.target.value,
                         })
                       }
                       required
@@ -812,10 +868,10 @@ function StudentPortal({ currentUser, onLogout }) {
                     <select
                       style={inputStyle}
                       value={form.rating}
-                      onChange={(event) =>
+                      onChange={(e) =>
                         setForm({
                           ...form,
-                          rating: event.target.value,
+                          rating: e.target.value,
                         })
                       }
                     >
@@ -899,6 +955,193 @@ function StudentPortal({ currentUser, onLogout }) {
             </div>
           )}
 
+          {/* NEW: CONTACT ADMINS */}
+          {page === 'Contact Admins' && (
+            <div>
+              <div
+                style={{
+                  ...card,
+                  marginBottom: 20,
+                  background:
+                    'linear-gradient(120deg,#e7f5e9,#f8faee)',
+                }}
+              >
+                <span
+                  style={{
+                    color: '#34784d',
+                    fontSize: 11,
+                    fontWeight: 800,
+                    letterSpacing: 2,
+                  }}
+                >
+                  CAMPUS SUPPORT
+                </span>
+
+                <h2 style={{ margin: '10px 0' }}>
+                  We're here to help.
+                </h2>
+
+                <p style={muted}>
+                  Contact your mess administrators for
+                  assistance with meals, payments or
+                  other dining-related queries.
+                </p>
+              </div>
+
+              {adminsLoading && (
+                <p style={{ color: '#b3c7ba' }}>
+                  Loading administrators...
+                </p>
+              )}
+
+              {adminsError && (
+                <div
+                  style={{
+                    ...card,
+                    color: '#b42318',
+                    marginBottom: 20,
+                  }}
+                >
+                  {adminsError}
+                </div>
+              )}
+
+              {!adminsLoading &&
+                !adminsError &&
+                admins.length === 0 && (
+                  <div style={card}>
+                    <h3>No administrators found</h3>
+                    <p style={muted}>
+                      No administrator contact details
+                      are available for your mess yet.
+                    </p>
+                  </div>
+                )}
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns:
+                    'repeat(auto-fit,minmax(260px,1fr))',
+                  gap: 18,
+                }}
+              >
+                {admins.map((admin) => (
+                  <div
+                    key={admin._id}
+                    style={{
+                      ...card,
+                      padding: 22,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 13,
+                        marginBottom: 18,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 14,
+                          background: '#e7f5e9',
+                          color: '#195b46',
+                          display: 'grid',
+                          placeItems: 'center',
+                          fontSize: 20,
+                          fontWeight: 800,
+                        }}
+                      >
+                        {(admin.username || 'A')
+                          .charAt(0)
+                          .toUpperCase()}
+                      </div>
+
+                      <div>
+                        <h3
+                          style={{
+                            margin: '0 0 5px',
+                            fontSize: 17,
+                          }}
+                        >
+                          {admin.username || 'Administrator'}
+                        </h3>
+
+                        <span
+                          style={{
+                            color: '#23814e',
+                            fontSize: 12,
+                            fontWeight: 700,
+                          }}
+                        >
+                          ● Mess Administrator
+                        </span>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        borderTop: '1px solid #edf1ed',
+                        paddingTop: 15,
+                      }}
+                    >
+                      <p style={muted}>
+                        <strong>☎ Phone:</strong>{' '}
+                        {admin.phone || 'Not provided'}
+                      </p>
+
+                      <p
+                        style={{
+                          ...muted,
+                          overflowWrap: 'anywhere',
+                        }}
+                      >
+                        <strong>✉ Email:</strong>{' '}
+                        {admin.email || 'Not provided'}
+                      </p>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 10,
+                        marginTop: 20,
+                      }}
+                    >
+                      {admin.phone && (
+                        <a
+                          href={`tel:${String(admin.phone)
+                            .replace(/[^\d+]/g, '')}`}
+                          style={actionLink}
+                        >
+                          ☎ Call
+                        </a>
+                      )}
+
+                      {admin.email && (
+                        <a
+                          href={`mailto:${admin.email}`}
+                          style={{
+                            ...actionLink,
+                            background: '#e7f5e9',
+                            color: '#195b46',
+                          }}
+                        >
+                          ✉ Email
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* MY PROFILE */}
           {page === 'My Profile' && (
             <div style={{ ...card, maxWidth: 650 }}>
               <h2>Student Profile</h2>
@@ -935,8 +1178,8 @@ function StudentPortal({ currentUser, onLogout }) {
             style={{ marginTop: 35 }}
           >
             <span>
-              © {new Date().getFullYear()} MessMate · IIIT
-              Bhubaneswar
+              © {new Date().getFullYear()} MessMate ·
+              IIIT Bhubaneswar
             </span>
             <span>Made for better campus dining ✳</span>
           </footer>
