@@ -1,9 +1,18 @@
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = `${(import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')}/api`;
+
+// Common API request helper
+async function apiFetch(endpoint, options = {}) {
+  const path = endpoint.startsWith('/api/')
+    ? endpoint.slice(4)
+    : endpoint;
+
+  return fetch(`${API_BASE_URL}${path}`, options);
+}
 
 // Admin login
 export async function loginAdmin(email, password) {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+  const response = await apiFetch('/auth/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -30,7 +39,7 @@ export async function getStudents() {
     throw new Error('Please login first');
   }
 
-  const response = await fetch(`${API_BASE_URL}/v1/user/getUsers`, {
+  const response = await apiFetch('/v1/user/getUsers', {
     method: 'GET',
     headers: {
       'x-auth-token': token,
@@ -54,7 +63,7 @@ export async function addStudent(studentData) {
     throw new Error('Please login first');
   }
 
-  const response = await fetch(`${API_BASE_URL}/v1/user/addUser`, {
+  const response = await apiFetch('/v1/user/addUser', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -72,7 +81,7 @@ export async function addStudent(studentData) {
   return result.data;
 }
 
-// Delete a student from the authenticated admin's mess
+// Delete a student
 export async function deleteStudent(studentId) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -84,8 +93,8 @@ export async function deleteStudent(studentId) {
     throw new Error('Student ID is required');
   }
 
-  const response = await fetch(
-    `${API_BASE_URL}/v1/user/removeUser/${encodeURIComponent(studentId)}`,
+  const response = await apiFetch(
+    `/v1/user/removeUser/${encodeURIComponent(studentId)}`,
     {
       method: 'DELETE',
       headers: {
@@ -108,8 +117,7 @@ export function logoutAdmin() {
   sessionStorage.removeItem('messmate_token');
 }
 
-
- // Update student details in MongoDB (Admin only)
+// Update student details
 export async function updateStudent(studentId, studentData) {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -121,8 +129,8 @@ export async function updateStudent(studentId, studentData) {
     throw new Error('Student ID is required');
   }
 
-  const response = await fetch(
-    `/api/v1/user/updateStudent/${encodeURIComponent(studentId)}`,
+  const response = await apiFetch(
+    `/v1/user/updateStudent/${encodeURIComponent(studentId)}`,
     {
       method: 'PUT',
       headers: {
@@ -142,8 +150,7 @@ export async function updateStudent(studentId, studentData) {
   return result.data;
 }
 
-
-// Get weekly mess menu from MongoDB
+// Get weekly mess menu
 export async function getWeeklyMenu() {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -151,7 +158,7 @@ export async function getWeeklyMenu() {
     throw new Error('Please login first');
   }
 
-  const response = await fetch('/api/v1/menu/weekly', {
+  const response = await apiFetch('/v1/menu/weekly', {
     method: 'GET',
     headers: {
       'x-auth-token': token,
@@ -175,7 +182,7 @@ export async function addMenu(menuData) {
     throw new Error('Please login first');
   }
 
-  const response = await fetch('/api/v1/menu/add', {
+  const response = await apiFetch('/v1/menu/add', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -201,8 +208,8 @@ export async function updateMenu(menuId, menuData) {
     throw new Error('Please login first');
   }
 
-  const response = await fetch(
-    `/api/v1/menu/update/${encodeURIComponent(menuId)}`,
+  const response = await apiFetch(
+    `/v1/menu/update/${encodeURIComponent(menuId)}`,
     {
       method: 'PUT',
       headers: {
@@ -230,8 +237,8 @@ export async function deleteMenu(menuId) {
     throw new Error('Please login first');
   }
 
-  const response = await fetch(
-    `/api/v1/menu/delete/${encodeURIComponent(menuId)}`,
+  const response = await apiFetch(
+    `/v1/menu/delete/${encodeURIComponent(menuId)}`,
     {
       method: 'DELETE',
       headers: {
@@ -249,17 +256,17 @@ export async function deleteMenu(menuId) {
   return result.data;
 }
 
- // Get total registered students for Dashboard
+// Get total registered students
 export async function getStudentCount() {
   const students = await getStudents();
   return students.length;
 }
 
-// Get all meal records for the current month
+// Get all meal records
 export async function getMeals() {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch('/api/v1/meal/currentMeal', {
+  const response = await apiFetch('/v1/meal/currentMeal', {
     headers: {
       'x-auth-token': token,
     },
@@ -274,11 +281,11 @@ export async function getMeals() {
   return result.data || [];
 }
 
-// Add a new meal record
+// Add a meal
 export async function addMeal(mealData) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch('/api/v1/meal/addMeal', {
+  const response = await apiFetch('/v1/meal/addMeal', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -296,11 +303,11 @@ export async function addMeal(mealData) {
   return result.data;
 }
 
-// Update an existing meal record
+// Update meal
 export async function updateMeal(mealId, mealData) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch(`/api/v1/meal/updateMeal/${mealId}`, {
+  const response = await apiFetch(`/v1/meal/updateMeal/${mealId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -318,11 +325,11 @@ export async function updateMeal(mealId, mealData) {
   return result.data;
 }
 
-// Delete a meal record
+// Delete meal
 export async function deleteMeal(mealId) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch(`/api/v1/meal/deleteMeal/${mealId}`, {
+  const response = await apiFetch(`/v1/meal/deleteMeal/${mealId}`, {
     method: 'DELETE',
     headers: {
       'x-auth-token': token,
@@ -338,7 +345,7 @@ export async function deleteMeal(mealId) {
   return result;
 }
 
-// Get total meals served in the current month
+// Get monthly meal count
 export async function getMonthlyMealCount() {
   const meals = await getMeals();
 
@@ -348,12 +355,11 @@ export async function getMonthlyMealCount() {
   );
 }
 
-
-// Get monthly expenses
+// Get expenses
 export async function getExpenses() {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch('/api/v1/expense/messTotalExpense', {
+  const response = await apiFetch('/v1/expense/messTotalExpense', {
     headers: {
       'x-auth-token': token,
     },
@@ -377,7 +383,7 @@ export async function getExpenses() {
 export async function getExpenseCategories() {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch('/api/v1/category/getCategory', {
+  const response = await apiFetch('/v1/category/getCategory', {
     headers: {
       'x-auth-token': token,
     },
@@ -396,7 +402,7 @@ export async function getExpenseCategories() {
 export async function addExpense(expenseData) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch('/api/v1/expense/addExpense', {
+  const response = await apiFetch('/v1/expense/addExpense', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -418,8 +424,8 @@ export async function addExpense(expenseData) {
 export async function updateExpense(expenseId, expenseData) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch(
-    `/api/v1/expense/updateExpense/${expenseId}`,
+  const response = await apiFetch(
+    `/v1/expense/updateExpense/${expenseId}`,
     {
       method: 'PUT',
       headers: {
@@ -443,8 +449,8 @@ export async function updateExpense(expenseId, expenseData) {
 export async function deleteExpense(expenseId) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch(
-    `/api/v1/expense/deleteExpense/${expenseId}`,
+  const response = await apiFetch(
+    `/v1/expense/deleteExpense/${expenseId}`,
     {
       method: 'DELETE',
       headers: {
@@ -462,7 +468,7 @@ export async function deleteExpense(expenseId) {
   return result;
 }
 
-// Get logged-in admin ID from JWT
+// Get admin ID from JWT
 export function getAdminId() {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -482,12 +488,11 @@ export function getAdminId() {
   }
 }
 
-
 // Add expense category
 export async function addExpenseCategory(categoryData) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch('/api/v1/category/addCategory', {
+  const response = await apiFetch('/v1/category/addCategory', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -509,8 +514,8 @@ export async function addExpenseCategory(categoryData) {
 export async function updateExpenseCategory(categoryId, categoryData) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch(
-    `/api/v1/category/updateCategory/${categoryId}`,
+  const response = await apiFetch(
+    `/v1/category/updateCategory/${categoryId}`,
     {
       method: 'PUT',
       headers: {
@@ -534,8 +539,8 @@ export async function updateExpenseCategory(categoryId, categoryData) {
 export async function deleteExpenseCategory(categoryId) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch(
-    `/api/v1/category/deleteCategory/${categoryId}`,
+  const response = await apiFetch(
+    `/v1/category/deleteCategory/${categoryId}`,
     {
       method: 'DELETE',
       headers: {
@@ -553,12 +558,11 @@ export async function deleteExpenseCategory(categoryId) {
   return result;
 }
 
-
-// Get all payment records for the current month
+// Get payments
 export async function getPayments() {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch('/api/v1/balance/messTotalBalance', {
+  const response = await apiFetch('/v1/balance/messTotalBalance', {
     headers: {
       'x-auth-token': token,
     },
@@ -573,11 +577,11 @@ export async function getPayments() {
   return Array.isArray(result.data) ? result.data : [];
 }
 
-// Add a new payment
+// Add payment
 export async function addPayment(paymentData) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch('/api/v1/balance/addBalance', {
+  const response = await apiFetch('/v1/balance/addBalance', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -595,12 +599,12 @@ export async function addPayment(paymentData) {
   return result.data;
 }
 
-// Update an existing payment
+// Update payment
 export async function updatePayment(paymentId, paymentData) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch(
-    `/api/v1/balance/updateBalance/${encodeURIComponent(paymentId)}`,
+  const response = await apiFetch(
+    `/v1/balance/updateBalance/${encodeURIComponent(paymentId)}`,
     {
       method: 'PUT',
       headers: {
@@ -620,12 +624,12 @@ export async function updatePayment(paymentId, paymentData) {
   return result.data;
 }
 
-// Delete a payment
+// Delete payment
 export async function deletePayment(paymentId) {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch(
-    `/api/v1/balance/deleteBalance/${encodeURIComponent(paymentId)}`,
+  const response = await apiFetch(
+    `/v1/balance/deleteBalance/${encodeURIComponent(paymentId)}`,
     {
       method: 'DELETE',
       headers: {
@@ -643,12 +647,12 @@ export async function deletePayment(paymentId) {
   return result;
 }
 
-// Get current available mess balance
+// Get available balance
 export async function getAvailableBalance() {
   const token = sessionStorage.getItem('messmate_token');
 
-  const response = await fetch(
-    '/api/v1/balance/currentAvailableBalance',
+  const response = await apiFetch(
+    '/v1/balance/currentAvailableBalance',
     {
       headers: {
         'x-auth-token': token,
@@ -665,8 +669,8 @@ export async function getAvailableBalance() {
   return Number(result.data || 0);
 }
 
-
-const FEEDBACK_API = '/api/v1/feedback';
+// Feedback APIs
+const FEEDBACK_API = '/v1/feedback';
 
 async function feedbackRequest(path, options = {}) {
   const token = sessionStorage.getItem('messmate_token');
@@ -675,7 +679,7 @@ async function feedbackRequest(path, options = {}) {
     throw new Error('Please login first');
   }
 
-  const response = await fetch(`${FEEDBACK_API}${path}`, {
+  const response = await apiFetch(`${FEEDBACK_API}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -726,11 +730,7 @@ export async function deleteFeedback(feedbackId) {
   );
 }
 
-
-/* ==========================================
-   ROLE-BASED AUTHENTICATION
-========================================== */
-
+// Role-based authentication
 export function getLoggedInUser() {
   const token = sessionStorage.getItem('messmate_token');
 
@@ -773,69 +773,65 @@ export function logoutUser() {
   sessionStorage.removeItem('messmate_token');
 }
 
-
-/* ==========================================
-   STUDENT PORTAL APIs
-========================================== */
-
+// Student portal APIs
 async function studentRequest(endpoint, options = {}) {
-    const token = sessionStorage.getItem('messmate_token');
+  const token = sessionStorage.getItem('messmate_token');
 
-    if (!token) {
-        throw new Error('Please login first');
-    }
+  if (!token) {
+    throw new Error('Please login first');
+  }
 
-    const res = await fetch(`/api/v1/student${endpoint}`, {
-        ...options,
-        headers: {
-            'x-auth-token': token,
-            ...(options.headers || {})
-        }
-    });
+  const res = await apiFetch(`/v1/student${endpoint}`, {
+    ...options,
+    headers: {
+      'x-auth-token': token,
+      ...(options.headers || {}),
+    },
+  });
 
-    const result = await res.json();
+  const result = await res.json();
 
-    if (!res.ok || !result.success) {
-        throw new Error(result.message || 'Request failed');
-    }
+  if (!res.ok || !result.success) {
+    throw new Error(result.message || 'Request failed');
+  }
 
-    return result.data;
+  return result.data;
 }
 
 export function getStudentDashboard() {
-    return studentRequest('/dashboard');
+  return studentRequest('/dashboard');
 }
 
 export function getMyMeals() {
-    return studentRequest('/meals');
+  return studentRequest('/meals');
 }
 
 export function getMyPayments() {
-    return studentRequest('/payments');
+  return studentRequest('/payments');
 }
 
 export function getMyComplaints() {
-    return studentRequest('/complaints');
+  return studentRequest('/complaints');
 }
 
 export async function getMyProfile() {
-    const token = sessionStorage.getItem('messmate_token');
+  const token = sessionStorage.getItem('messmate_token');
 
-    if (!token) {
-        throw new Error('Please login first');
-    }
+  if (!token) {
+    throw new Error('Please login first');
+  }
 
-    const res = await fetch('/api/v1/user/getProfile', {
-        headers: {
-            'x-auth-token': token
-        }
-    });
+  const res = await apiFetch('/v1/user/getProfile', {
+    headers: {
+      'x-auth-token': token,
+    },
+  });
 
-    const result = await res.json();
+  const result = await res.json();
 
-    if (!res.ok || !result.success) {
-        throw new Error(result.message || 'Failed to load profile');
-    }
+  if (!res.ok || !result.success) {
+    throw new Error(result.message || 'Failed to load profile');
+  }
 
-    return result.data;
+  return result.data;
 }
